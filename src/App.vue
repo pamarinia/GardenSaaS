@@ -2,8 +2,9 @@
   <main>
     <div v-if="showModal" class="overlay">
       <div class="modal">
-        <textarea name="note" id="note" cols="30" rows="10"></textarea>
-        <button>Add note</button>
+        <textarea v-model.trim="newNote" name="note" id="note" cols="30" rows="10"></textarea>
+        <p v_if="errorMessage">{{ errorMessage }}</p>
+        <button @click="addNote">Add note</button>
         <button class="close" @click="showModal = false">Close</button>
       </div>
     </div>
@@ -15,13 +16,14 @@
       </header>
 
       <div class="cards-container">
-        <div class="card">
-          <p class="main-text">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ratione ex aut voluptate, maxime distinctio numquam.</p>
-          <p class="date">04/27/2019</p>
-        </div>
-        <div class="card">
-          <p class="main-text">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ratione ex aut voluptate, maxime distinctio numquam.</p>
-          <p class="date">04/27/2019</p>
+        <div 
+          v-for="note in notes" 
+          :key="note.id"
+          class="card" 
+          :style="{backgroundColor: note.backgroundColor }"
+        >
+          <p class="main-text">{{ note.text }}</p>
+          <p class="date">{{ note.date }}</p>
         </div>
       </div>
     </div>
@@ -30,9 +32,32 @@
 
 
 <script setup lang="ts">
-  import { ref } from 'vue';
+import { ref } from 'vue';
 
   const showModal = ref(false);
+  const newNote = ref('');
+  const errorMessage= ref('');
+  const notes = ref<Array<{ id: number; text: string; date: string; backgroundColor: string; }>>([]);
+
+  function getRandomColor() {
+    const color = "hsl(" + Math.random() * 360 + ", 100%, 75%)";
+    return color;
+  }
+
+  const addNote = () => {
+    if(newNote.value.length < 10) {
+      return errorMessage.value = 'Note must be at least 10 characters long';
+    }
+    notes.value.push({
+      id: Math.floor(Math.random() * 1000000),
+      text: newNote.value,
+      date: new Date().toLocaleDateString(),
+      backgroundColor: getRandomColor()
+    });
+    showModal.value = false;
+    newNote.value = '';
+    errorMessage.value = '';
+  }
 </script>
 
 
@@ -80,7 +105,6 @@ header button {
 .card {
   width: 225px;
   height: 225px;
-  background-color: rgb(255, 255, 122);
   padding: 10px;
   border-radius: 15px;
   display: flex;
@@ -128,5 +152,10 @@ header button {
 
 .modal .close {
   background-color: red;
+}
+
+.modal p {
+  color: red;
+  font-size: 20px;
 }
 </style>
